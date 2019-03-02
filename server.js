@@ -42,6 +42,43 @@ function validatePerson(cedula) {
   return JSON.stringify(result);
 }
 
+function registerAssistance(index) {
+  var days = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday"
+  ];
+
+  var inscritosSheet = getSheetFromSpreadSheet(GENERAL_DB, "INSCRITOS");
+  var headers = inscritosSheet.getSheetValues(
+    1,
+    1,
+    1,
+    inscritosSheet.getLastColumn()
+  )[0];
+  var now = new Date();
+  var day = days[now.getDay()];
+  var columnIndex = -1;
+  if (day === "Thursday" || day === "Saturday") {
+    columnIndex = headers.indexOf("HORA_INGRESO_JUEVES");
+  } else if (day === "Friday") {
+    columnIndex = headers.indexOf("HORA_INGRESO_VIERNES");
+  } else return;
+
+  logFunctionOutput(
+    registerAssistance.name,
+    inscritosSheet.getRange(index, columnIndex).getValues()
+  );
+  inscritosSheet
+    .getRange(index + 1, columnIndex + 1)
+    .setValues([[now.toString()]]);
+  return true;
+}
+
 function getPeopleRegistered() {
   var peopleSheet = getRawDataFromSheet(GENERAL_DB, "INSCRITOS");
   var peopleObjects = sheetValuesToObject(peopleSheet);

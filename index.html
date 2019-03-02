@@ -24,6 +24,24 @@
         display: none;
       }
 
+      .ui.modal {
+        margin-top: 5px !important;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .not-visible {
+        display: none !important;
+      }
+      .pay-yes {
+        color: green !important;
+        font-size: 2em !important;
+      }
+      .pay-not {
+        color: red !important;
+        font-size: 2em !important;
+      }
+
       #preview {
         max-height: 70%;
       }
@@ -66,7 +84,7 @@
     </div>
 
     <div id="main-content" class="ui grid">
-      <div style="background-color: blue" class="ten wide column centered">
+      <div class="ten wide column centered">
         <video id="preview"></video>
         <h2 id="output"></h2>
       </div>
@@ -166,16 +184,25 @@
               </div>
             </div>
           </div>
-          <button
-            style="margin: 5px 5px"
-            class="ui blue not-visible button"
-            id="register-pay-btn"
-            name="register-pay-btn"
-            onclick="submitAssistance()"
-          >
-            Ingresar al evento
-          </button>
         </form>
+        <button
+          style="margin: 5px 5px"
+          class="ui blue not-visible button"
+          id="register-assitance"
+          name="register-assitance"
+          onclick="submitAssistance()"
+        >
+          Ingresar al evento
+        </button>
+        <div class="ui tiny modal ">
+          <i class="close icon" onclick="location.reload('true')"></i>
+          <div class="ui large center aligned green inverted header ">
+            Bienvenido a COGESTEC 2019!
+          </div>
+          <div class="content">
+            <div id="result-msg" class="ui message"></div>
+          </div>
+        </div>
       </div>
     </div>
     <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
@@ -187,12 +214,12 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.9/semantic.min.js"></script>
     <script type="text/javascript">
       $(document).ready(() => {
-        setTimeout(() => {
-          searchForPerson("69696969");
-        }, 2000);
-        //initScanner();
+        //setTimeout(() => {
+        //searchForPerson("69696969");
+        //}, 2000);
+        initScanner();
       });
-
+      let personIndex = -1;
       function initScanner() {
         let scanner = new Instascan.Scanner({
           video: document.getElementById("preview"),
@@ -259,34 +286,25 @@
         }
       }
       function submitAssistance() {
-        // $("#form-form").form('validate form')
-        if ($("#form-form").form("validate field", "pay_file")) {
-          $("#form-form").addClass("loading");
-          $("#pls-wait").removeClass("not-visible");
-          personIndex = -1;
-          if (personIndex) {
-            function onSuccess(result) {
-              if (result) {
-                if (currentPerson) {
-                  $("#form-form").removeClass("loading");
-                  $("#pls-wait").addClass("not-visible");
+        $("#form-form").addClass("loading");
 
-                  $("#register-pay-btn").addClass("loading");
-                  $("#register-pay-btn").removeClass("loading");
-                  showSuccesPayModal();
-                }
-              } else {
+        if (personIndex > -1) {
+          function onSuccess(result) {
+            if (result) {
+              if (currentPerson) {
                 $("#form-form").removeClass("loading");
+                showSuccesPayModal();
               }
+            } else {
+              $("#form-form").removeClass("loading");
             }
-
-            google.script.run
-              .withSuccessHandler(onSuccess)
-              .generatePayment(personIndex, $("input[name='cedula']").val());
-          } else {
-            $("#pls-wait").removeClass("not-visible");
-            $("#form-form").removeClass("loading");
           }
+
+          google.script.run
+            .withSuccessHandler(onSuccess)
+            .registerAssistance(personIndex);
+        } else {
+          $("#form-form").removeClass("loading");
         }
       }
 
@@ -294,7 +312,6 @@
         loadPersonInForm(person);
 
         disableFormFielfds(true);
-        $("#pls-wait").addClass("not-visible");
         $("#form-form").removeClass("loading");
       }
       function loadPersonInForm(person) {
@@ -313,9 +330,14 @@
         $("input[name='concepto_pago']").val(person.data.concepto_pago);
         $("input[name='pago_comprobado']").val(person.data.pago_comprobado);
         if (person.data.pago_comprobado === "SI") {
-          $("input[name='pago_comprobado']").addClass("green");
+          $("input[name='pago_comprobado']").addClass("pay-yes");
         } else {
-          $("input[name='pago_comprobado']").addClass("red");
+          $("input[name='pago_comprobado']").addClass("pay-not");
+        }
+
+        if (person.data.hora_ingreso_jueves.length > 3) {
+          $("#register-assitance").addClass("not-visible");
+          $("#output").html("Usuario ya ingreso el dia de hoy (Jueves)");
         }
         $("input[name='documento_verificado']").val(
           person.data.documento_verificado
@@ -349,25 +371,29 @@
           $("input:not([name='busca-cedula'])").removeClass("not-allowed");
         }
       }
+      function showSuccesPayModal() {
+        $("#form-form").removeClass("loading");
+        $("#result-msg").text("");
+        $(".ui.modal").modal("show");
+        $("#modal-form").addClass("not-visible");
+        $(".actions").css("display", "block");
+        $("#result-msg").text(
+          `Ha sido registrado satisfactoriamente el dia de hoy, puede acceder a su evento`
+        );
+      }
 
       function showForm() {
         $("#form-form").css("display", "block");
-        $(".support-ready-field").addClass("not-visible");
-        $("ui.submit.button").css("display", "block");
+        $("#register-assitance").removeClass("not-visible");
         $("input[name='cedula']").val($("#busca-cedula").val());
         disableFormFielfds(false);
       }
 
       function hideForm() {
         $("#form-form").css("display", "none");
-        $(".fields.regreso").removeClass("not-allowed");
-        $(".doc-field").removeClass("not-visible");
-        $(".fields.regreso").removeClass("not-allowed");
-        $("#digita-ponencia").addClass("not-visible");
         $("#pay-msg").addClass("not-visible");
         $("#pay-msg").text("");
-        $("#register-pay-btn").addClass("not-visible");
-        $("#free-btn").addClass("not-visible");
+        $("#register-assitance").addClass("not-visible");
         disableFormFielfds(false);
         $("#form-form").form("clear");
       }
