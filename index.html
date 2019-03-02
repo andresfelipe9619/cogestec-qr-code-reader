@@ -24,6 +24,10 @@
         display: none;
       }
 
+      #preview {
+        max-height: 70%;
+      }
+
       #main-content {
         margin-top: 60px;
       }
@@ -39,7 +43,9 @@
       input[name="correo"] {
         text-transform: lowercase;
       }
-
+      input[name="pago_comprobado"] {
+        font-size: 20rem;
+      }
       ::placeholder {
         text-transform: none;
       }
@@ -60,12 +66,12 @@
     </div>
 
     <div id="main-content" class="ui grid">
-      <div class="six wide column">
+      <div style="background-color: blue" class="ten wide column centered">
         <video id="preview"></video>
         <h2 id="output"></h2>
       </div>
-      <div class="eight wide column">
-        <form class="ui form attached fluid segment" id="form-form">
+      <div class="eight wide column centered">
+        <form class="ui inverted form attached fluid segment" id="form-form">
           <h4 class="ui dividing header">Información General</h4>
           <div class="field">
             <div class="two fields">
@@ -160,6 +166,15 @@
               </div>
             </div>
           </div>
+          <button
+            style="margin: 5px 5px"
+            class="ui blue not-visible button"
+            id="register-pay-btn"
+            name="register-pay-btn"
+            onclick="submitAssistance()"
+          >
+            Ingresar al evento
+          </button>
         </form>
       </div>
     </div>
@@ -172,10 +187,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.9/semantic.min.js"></script>
     <script type="text/javascript">
       $(document).ready(() => {
-        // setTimeout(() => {
-        //   searchForPerson("1144196063");
-        // }, 2000);
-        initScanner();
+        setTimeout(() => {
+          searchForPerson("69696969");
+        }, 2000);
+        //initScanner();
       });
 
       function initScanner() {
@@ -243,6 +258,37 @@
           }, 3000);
         }
       }
+      function submitAssistance() {
+        // $("#form-form").form('validate form')
+        if ($("#form-form").form("validate field", "pay_file")) {
+          $("#form-form").addClass("loading");
+          $("#pls-wait").removeClass("not-visible");
+          personIndex = -1;
+          if (personIndex) {
+            function onSuccess(result) {
+              if (result) {
+                if (currentPerson) {
+                  $("#form-form").removeClass("loading");
+                  $("#pls-wait").addClass("not-visible");
+
+                  $("#register-pay-btn").addClass("loading");
+                  $("#register-pay-btn").removeClass("loading");
+                  showSuccesPayModal();
+                }
+              } else {
+                $("#form-form").removeClass("loading");
+              }
+            }
+
+            google.script.run
+              .withSuccessHandler(onSuccess)
+              .generatePayment(personIndex, $("input[name='cedula']").val());
+          } else {
+            $("#pls-wait").removeClass("not-visible");
+            $("#form-form").removeClass("loading");
+          }
+        }
+      }
 
       function showPersonInForm(person) {
         loadPersonInForm(person);
@@ -266,6 +312,11 @@
         $("input[name='dependencia']").val(person.data.dependencia);
         $("input[name='concepto_pago']").val(person.data.concepto_pago);
         $("input[name='pago_comprobado']").val(person.data.pago_comprobado);
+        if (person.data.pago_comprobado === "SI") {
+          $("input[name='pago_comprobado']").addClass("green");
+        } else {
+          $("input[name='pago_comprobado']").addClass("red");
+        }
         $("input[name='documento_verificado']").val(
           person.data.documento_verificado
         );
