@@ -63,11 +63,11 @@ function registerAssistance(index) {
   var now = new Date();
   var day = days[now.getDay()];
   var columnIndex = -1;
-  if (day === "Thursday" || day === "Saturday") {
-    columnIndex = headers.indexOf("HORA_INGRESO_JUEVES");
+  if (day === "Thursday" || day === "Wednesday") {
+    columnIndex = headers.indexOf("HORA_INGRESO");
   } else if (day === "Friday") {
     columnIndex = headers.indexOf("HORA_INGRESO_VIERNES");
-  } else return;
+  } else return false;
 
   logFunctionOutput(
     registerAssistance.name,

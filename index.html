@@ -3,6 +3,12 @@
   <head>
     <title>QR Reader</title>
     <base target="_top" />
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <meta http-equiv="Content-Security-Policy" content="connect-src http:" />
     <link
       rel="stylesheet"
@@ -16,6 +22,7 @@
       form {
         display: none;
       }
+
       #navbar {
         margin-bottom: 60px;
       }
@@ -24,19 +31,15 @@
         display: none;
       }
 
-      .ui.modal {
-        margin-top: 5px !important;
-        margin-left: auto;
-        margin-right: auto;
-      }
-
       .not-visible {
         display: none !important;
       }
+
       .pay-yes {
         color: green !important;
         font-size: 2em !important;
       }
+
       .pay-not {
         color: red !important;
         font-size: 2em !important;
@@ -61,11 +64,30 @@
       input[name="correo"] {
         text-transform: lowercase;
       }
+
       input[name="pago_comprobado"] {
         font-size: 20rem;
       }
+
       ::placeholder {
         text-transform: none;
+      }
+
+      .dimmed.dimmable > .ui.animating.dimmer,
+      .dimmed.dimmable > .ui.visible.dimmer,
+      .ui.active.dimmer {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .ui.modal,
+      .ui.active.modal {
+        margin: 0 auto !important;
+        top: auto !important;
+        left: auto !important;
+        transform-origin: center !important;
+        transition: all ease 0.5s;
       }
     </style>
   </head>
@@ -84,12 +106,12 @@
     </div>
 
     <div id="main-content" class="ui grid">
-      <div class="ten wide column centered">
-        <video id="preview"></video>
+      <div class="twelve wide column centered">
+        <video width="800" id="preview"></video>
         <h2 id="output"></h2>
       </div>
       <div class="eight wide column centered">
-        <form class="ui inverted form attached fluid segment" id="form-form">
+        <form class="ui form attached fluid segment" id="form-form">
           <h4 class="ui dividing header">Información General</h4>
           <div class="field">
             <div class="two fields">
@@ -215,7 +237,7 @@
     <script type="text/javascript">
       $(document).ready(() => {
         //setTimeout(() => {
-        //searchForPerson("69696969");
+        //  searchForPerson("1234");
         //}, 2000);
         initScanner();
       });
@@ -264,6 +286,7 @@
             if (person.isRegistered) {
               showForm();
               showPersonInForm(person);
+              $("#preview").addClass("not-visible");
             } else {
               $("#output").html("Usuario no encontrado!");
               $("#form-form").removeClass("loading");
@@ -297,6 +320,9 @@
               }
             } else {
               $("#form-form").removeClass("loading");
+              $("#output").html(
+                "No es posible registrarse el dia de hoy, por favor verifique la fecha"
+              );
             }
           }
 
@@ -336,7 +362,7 @@
           $("#register-assitance").addClass("not-visible");
         }
 
-        if (person.data.hora_ingreso_jueves.length > 3) {
+        if (person.data.hora_ingreso.length > 3) {
           $("#register-assitance").addClass("not-visible");
           $("#output").html("Usuario ya ingreso el dia de hoy (Jueves)");
         }
@@ -381,6 +407,11 @@
         $("#result-msg").text(
           `Ha sido registrado satisfactoriamente el dia de hoy, puede acceder a su evento`
         );
+        setTimeout(() => {
+          let link =
+            "https://script.google.com/a/correounivalle.edu.co/macros/s/AKfycbzbOPtudPTt92qUiMlrZYt3Bdw9d_Kfup0M44sMY7w/dev";
+          window.open(link, "_top");
+        }, 2000);
       }
 
       function showForm() {
